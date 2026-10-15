@@ -55,7 +55,7 @@ export default function Navbar() {
               .map((item) => {
                 const active =
                   pathname === item.href ||
-                  (item.href !== "/" && pathname?.startsWith(item.href));
+                  (pathname?.startsWith(item.href) ?? false);
                 return (
                   <li key={item.href}>
                     <Link
