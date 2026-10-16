@@ -2,7 +2,7 @@ import Link from "next/link";
 import { site } from "@/data/site";
 
 export default function Footer() {
-  const year = new Date().getFullYear();
+  const year = 2020;
 
   return (
     <footer className="border-t border-ivory/10 bg-ink">
