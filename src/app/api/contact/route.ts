@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 /**
- * Validation schema the same rules as the frontend, enforced on the server.
+ * Validation schema — the same rules as the frontend, enforced on the server.
  */
 const schema = z.object({
   name: z.string().trim().min(2, "Name is too short").max(120),
@@ -33,7 +33,7 @@ export async function POST(req: Request) {
 
     // ─────────────────────────────────────────────────────────
     // 📬 In development: log to terminal
-    // 📬 In production: connect an email provider (see DEPLOYMENT.md)
+    // 📬 In production: connected to Resend (see env vars)
     // ─────────────────────────────────────────────────────────
     console.log("─── New contact submission ───────────────────");
     console.log("Name:    ", name);
@@ -49,27 +49,39 @@ export async function POST(req: Request) {
     const from = process.env.CONTACT_FROM_EMAIL;
 
     if (apiKey && to && from) {
+      // ⚠️ Resend's test domain (onboarding@resend.dev) rejects foreign
+      // reply_to addresses. Only include reply_to when using a verified
+      // domain of your own.
+      const isTestDomain = from.endsWith("@resend.dev");
+
+      const payload: Record<string, unknown> = {
+        from,
+        to,
+        subject: `[Crazytivity] New ${inquiry} inquiry from ${name}`,
+        text: `Name: ${name}\nEmail: ${email}\nPhone: ${
+          phone || "—"
+        }\nInquiry: ${inquiry}\n\n${message}`,
+      };
+
+      if (!isTestDomain) {
+        payload.reply_to = email;
+      }
+
       const res = await fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${apiKey}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          from,
-          to,
-          reply_to: email,
-          subject: `[Crazytivity] New ${inquiry} inquiry from ${name}`,
-          text: `Name: ${name}\nEmail: ${email}\nPhone: ${
-            phone || "—"
-          }\nInquiry: ${inquiry}\n\n${message}`,
-        }),
+        body: JSON.stringify(payload),
       });
 
       if (!res.ok) {
         const body = await res.text();
-        console.error("Resend failed:", body);
-        // We still return success to the user the message is logged above.
+        console.error("Resend failed:", res.status, body);
+        // We still return success to the user — the message is logged above.
+      } else {
+        console.log("Resend: email sent successfully");
       }
     }
 
