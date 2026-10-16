@@ -6,7 +6,7 @@ export const site = {
     "Contemporary art and original paintings by Crazytivity Art Stu. Bold, emotional, distinctive works available for purchase and commission.",
   url:
     process.env.NEXT_PUBLIC_SITE_URL ?? "https://crazytivityart.studio",
-  email: "Wiselyciprian@gmail.com ",
+  email: "wiselyciprian@gmail.com ",
   phone: "",
   location: "Studio by appointment",
   socials: {
